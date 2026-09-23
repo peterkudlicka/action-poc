@@ -1,0 +1,36 @@
+name: SBOM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+
+      - name: Restore
+        run: dotnet restore ActionPoc.slnx
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: WebAPI
+          format: spdx-json
+          artifact-name: sbom-webapi.spdx.json
+          upload-artifact: true
+          upload-artifact-retention: 30
